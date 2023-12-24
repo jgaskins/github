@@ -14,7 +14,15 @@ module GitHub
       token = oauth.get_access_token_using_authorization_code(code)
     end
 
-    private def oauth
+    def refresh_access_token(refresh_token : String)
+      token = oauth.get_access_token_using_refresh_token(refresh_token)
+    end
+
+    def authorize_uri : URI
+      URI.parse oauth.get_authorize_uri
+    end
+
+    private getter oauth : OAuth2::Client do
       OAuth2::Client.new(
         host: "github.com",
         client_id: @client_id,
