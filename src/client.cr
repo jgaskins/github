@@ -88,6 +88,19 @@ module GitHub
     end
 
     class HTTP < ::HTTP::Client
+      @log = ::Log.for(GitHub::Client)
+
+      def around_exec(request : ::HTTP::Request)
+        start = Time.monotonic
+        begin
+          yield
+        ensure
+          @log.debug &.emit "request",
+            duration_ms: (Time.monotonic - start).total_milliseconds,
+            host: request.headers["Host"]?,
+            resource: request.resource
+        end
+      end
     end
   end
 
