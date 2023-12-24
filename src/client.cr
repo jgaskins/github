@@ -15,7 +15,7 @@ module GitHub
 
     def initialize(@token = ENV["GITHUB_API_TOKEN"], @base_uri = URI.parse("https://api.github.com"))
       authorization = "Bearer #{token}"
-      @pool = DB::Pool(HTTP).new do
+      @pool = DB::Pool(HTTP).new(DB::Pool::Options.new(initial_pool_size: 0)) do
         http = HTTP.new(base_uri)
         http.before_request do |request|
           request.headers["Authorization"] = authorization
