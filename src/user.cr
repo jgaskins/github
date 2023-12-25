@@ -8,6 +8,7 @@ module GitHub
     getter id : Int64
     getter node_id : String
     getter name : String { login }
+    getter email : String?
     getter avatar_url : URI
     getter gravatar_id : String
     getter url : URI
