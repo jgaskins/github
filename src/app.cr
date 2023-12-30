@@ -4,10 +4,11 @@ require "./api"
 
 module GitHub
   class App
+    getter id : String
     @client_id : String
     @client_secret : String
 
-    def initialize(@client_id, @client_secret)
+    def initialize(*, @id, @client_id, @client_secret)
     end
 
     def get_access_token(code : String)
