@@ -1,5 +1,6 @@
 require "json"
 require "uri/json"
+require "msgpack"
 
 module GitHub
   module Resource

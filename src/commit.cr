@@ -27,7 +27,6 @@ module GitHub
     getter parents : Array(CommitEntry)
   end
 
-
   struct Commit
     include Resource
 
