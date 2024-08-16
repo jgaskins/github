@@ -40,6 +40,10 @@ module GitHub
       get "/user", as: Account
     end
 
+    def user_installations
+      get "/user/installations", as: Installation::List
+    end
+
     def graphql
       GraphQL::Client.new(self)
     end
