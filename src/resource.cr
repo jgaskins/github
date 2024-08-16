@@ -10,11 +10,6 @@ module GitHub
       # include MessagePack::Serializable::Unmapped
       # include JSON::Serializable::Unmapped
     end
-
-    macro field(var)
-      @[JSON::Field(key: {{var.var.camelcase(lower: true)}})]
-      getter {{var}}
-    end
   end
 end
 
