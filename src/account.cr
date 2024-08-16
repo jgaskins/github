@@ -1,7 +1,7 @@
 require "./resource"
 
 module GitHub
-  struct User
+  struct Account
     include Resource
 
     getter login : String

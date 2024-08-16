@@ -4,7 +4,7 @@ require "db/pool"
 require "./error"
 require "./resource"
 require "./graphql"
-require "./user"
+require "./account"
 require "./version"
 
 module GitHub
@@ -37,7 +37,7 @@ module GitHub
     end
 
     def user
-      get "/user", as: User
+      get "/user", as: Account
     end
 
     def graphql

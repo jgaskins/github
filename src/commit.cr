@@ -1,5 +1,5 @@
 require "./resource"
-require "./user"
+require "./account"
 
 module GitHub
   module Ref
@@ -22,8 +22,8 @@ module GitHub
     getter node_id : String
     getter html_url : URI
     getter comments_url : URI
-    getter author : User
-    getter committer : User
+    getter author : Account
+    getter committer : Account
     getter parents : Array(CommitEntry)
   end
 

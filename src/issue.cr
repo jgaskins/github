@@ -11,12 +11,12 @@ module GitHub
     getter html_url : URI
     getter number : Int64
     getter title : String
-    getter user : User
+    getter user : Account
     getter labels : JSON::Any
     getter state : State
     getter? locked : Bool = false
-    getter assignee : User?
-    getter assignees : Array(User) { [] of User }
+    getter assignee : Account?
+    getter assignees : Array(Account) { [] of Account }
     getter milestone : JSON::Any
     getter comments : Int64
     getter created_at : Time

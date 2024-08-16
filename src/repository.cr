@@ -7,7 +7,7 @@ module GitHub
     getter node_id : String
     getter name : String
     getter full_name : String
-    getter owner : User
+    getter owner : Account
     getter? private : Bool
   end
 end
