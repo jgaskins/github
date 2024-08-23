@@ -1,4 +1,8 @@
 require "./api"
+require "compress/zip"
+
+# TODO: invert these dependencies so working with a repo doesn't load everything
+# you could possibly do with a repo.
 require "./branches"
 require "./issues"
 require "./pulls"
@@ -16,6 +20,10 @@ module GitHub
 
     def branches
       Branches.new(client, owner, name)
+    end
+
+    def issue(number : Int)
+      IssueAPI.new(client, owner, name, number)
     end
 
     def issues
@@ -40,6 +48,19 @@ module GitHub
 
     def commit(ref : String)
       CommitAPI.new(client, owner, name, ref)
+    end
+
+    def zipball(ref : String, &block : Compress::Zip::File ->)
+      client.http_get "/repos/#{owner}/#{name}/zipball/#{ref}" do |response|
+        file = File.tempfile do |tempfile|
+          IO.copy response.body_io, tempfile
+        end
+        begin
+          Compress::Zip::File.open(file.path) { |zip| block.call zip }
+        ensure
+          file.delete
+        end
+      end
     end
 
     def get
