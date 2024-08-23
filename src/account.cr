@@ -4,7 +4,7 @@ module GitHub
   struct Account
     include Resource
 
-    getter login : String
+    getter! login : String
     getter id : Int64
     getter node_id : String
     getter name : String { login }
