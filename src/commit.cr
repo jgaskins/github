@@ -2,21 +2,37 @@ require "./resource"
 require "./account"
 
 module GitHub
-  module Ref
+  module RefProperties
     getter sha : String
     getter url : URI
   end
 
+  struct Ref
+    include Resource
+
+    getter ref : String
+    getter node_id : String
+    getter url : URI
+    getter object : Object
+
+    struct Object
+      include Resource
+      getter type : String
+      getter sha : String
+      getter url : URI
+    end
+  end
+
   struct CommitEntry
     include Resource
-    include Ref
+    include RefProperties
 
     getter html_url : URI?
   end
 
   struct CommitDetail
     include Resource
-    include Ref
+    include RefProperties
 
     getter commit : Commit
     getter node_id : String
@@ -30,13 +46,17 @@ module GitHub
   struct Commit
     include Resource
 
-    getter author : Actor
-    getter committer : Actor
-    getter message : String
-    getter tree : CommitEntry
-    getter url : URI
-    getter comment_count : Int64
-    getter verification : Verification
+    getter sha : String
+    getter! message : String
+    getter! ref : String
+    # getter node_id : String
+    # getter url : URI
+    # getter author : Actor
+    # getter committer : Actor
+    # getter tree : CommitEntry
+    # getter parents : Array(CommitEntry)
+    # getter verification : Verification
+    # getter html_url : URI
   end
 
   struct Actor
