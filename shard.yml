@@ -10,6 +10,8 @@ dependencies:
     version: "~> 0.13.0"
   jwt:
     github: crystal-community/jwt
+  msgpack:
+    github: crystal-community/msgpack-crystal
 
 crystal: '>= 1.10.1'
 
