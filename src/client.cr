@@ -17,7 +17,7 @@ module GitHub
     end
     private getter base_uri : URI
 
-    def self.new(token = ENV["GITHUB_API_TOKEN"], base_uri = URI.parse("https://api.github.com"))
+    def self.new(token : String = ENV["GITHUB_API_TOKEN"], base_uri : URI = URI.parse("https://api.github.com"))
       new(base_uri) { token }
     end
 
@@ -28,7 +28,7 @@ module GitHub
       @pool = DB::Pool(HTTP).new(DB::Pool::Options.new(initial_pool_size: 0, max_idle_pool_size: 25)) do
         http = HTTP.new(base_uri)
         http.before_request do |request|
-          request.headers["Accept"] = "application/vnd.github+json"
+          request.headers["Accept"] ||= "application/vnd.github+json"
           request.headers["Connection"] = "keep-alive"
           request.headers["User-Agent"] = "https://github.com/jgaskins/github (#{VERSION})"
         end
@@ -48,35 +48,62 @@ module GitHub
       GraphQL::Client.new(self)
     end
 
-    def get(path : String, as type : T.class) : T forall T
-      response = @pool.checkout &.get(path, headers: ::HTTP::Headers{
-        "Authorization" => "Bearer #{token.call}",
-      })
-      handle response
-
-      T.from_json response.body
+    def get?(path : String, body : String? = nil, *, as type : T.class) : T? forall T
+      response = @pool.checkout &.get(path, body: body, headers: default_headers)
+      case response.status
+      when .success?
+        T.from_json response.body
+      when .not_found?
+        nil
+      else
+        raise RequestError.new("Unexpected response from `GET #{path}`: #{response.status} #{response.status.code}")
+      end
     end
 
-    def post(path : String, body : String) : Nil
-      response = @pool.checkout &.post(path, body: body, headers: ::HTTP::Headers{
-        "Authorization" => "Bearer #{token.call}",
-      })
-      handle response
+    {% for method in %w[get post put patch delete] %}
+      def http_{{method.id}}(path : String, body : String? = nil, &block : ::HTTP::Client::Response ->)
+        @pool.checkout &.{{method.id}}(path, body: body, headers: default_headers) do |response|
+          if response.status.redirection? && (location = response.headers["location"]?)
+            if URI.parse(location).host == @base_uri.host
+              http_get(location, body, &block)
+            else
+              ::HTTP::Client.get(location, body, &block)
+            end
+          else
+            block.call response
+          end
+        end
+      end
+
+      def {{method.id}}(path : String, body : String? = nil, headers : ::HTTP::Headers? = nil, *, as type : T.class) : T forall T
+        response = @pool.checkout &.{{method.id}}(path, body: body, headers: headers(headers))
+        response = handle response, body
+
+        T.from_json response.body
+      end
+
+      def {{method.id}}(path : String, body : String? = nil, headers : ::HTTP::Headers? = nil) : ::HTTP::Client::Response
+        response = @pool.checkout &.{{method.id}}(path, body: body, headers: headers(headers))
+        handle response, body
+      end
+    {% end %}
+
+    private def headers(headers : ::HTTP::Headers)
+      default_headers.merge!(headers)
     end
 
-    def post(path : String, body : String, as type : T.class) : T forall T
-      response = @pool.checkout &.post(path, body: body, headers: ::HTTP::Headers{
-        "Authorization" => "Bearer #{token.call}",
-      })
-      handle response
-
-      T.from_json response.body
+    private def headers(no_headers : Nil)
+      default_headers
     end
 
-    private def handle(response : ::HTTP::Client::Response) : Nil
+    private def default_headers
+      ::HTTP::Headers{"Authorization" => "Bearer #{token.call}"}
+    end
+
+    private def handle(response : ::HTTP::Client::Response, body) : ::HTTP::Client::Response
       headers = response.headers
       unless headers.has_key? "X-RateLimit-Limit"
-        return
+        return response
       end
 
       resource = headers["X-RateLimit-Resource"]
@@ -88,15 +115,22 @@ module GitHub
       rate_limit.used = headers["X-RateLimit-Used"].to_i
       rate_limit.reset = Time.unix headers["X-RateLimit-Reset"].to_i
 
-      unless response.success?
-        error_response = ErrorResponse.from_json(response.body)
-        if uri = error_response.documentation_url
-          msg = "#{error_response.message} - #{uri}"
-        else
-          msg = error_response.message
-        end
-        raise RequestError.new(msg)
+      case response.status
+      when .success?, .redirection?
+        response
+      else
+        error! response
       end
+    end
+
+    private def error!(response)
+      error_response = ErrorResponse.from_json(response.body)
+      if uri = error_response.documentation_url
+        msg = "#{error_response.message} - #{uri}"
+      else
+        msg = error_response.message
+      end
+      raise RequestError.new("#{response.status.code} #{response.status} #{response.body}")
     end
 
     def fetch_rate_limits : Hash(String, RateLimit)
