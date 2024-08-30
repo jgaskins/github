@@ -143,6 +143,7 @@ module GitHub
         dismissed: Dismissed,
         edited:    Edited,
         submitted: Submitted,
+        deleted:   Deleted,
       }
 
       getter installation : GitHub::InstallationID
@@ -160,6 +161,9 @@ module GitHub
 
       action Submitted do
       end
+
+      action Deleted do
+      end
     end
 
     define PullRequestReviewComment do
@@ -167,9 +171,13 @@ module GitHub
 
       use_json_discriminator "action", {
         created: Created,
+        deleted: Deleted,
       }
 
       action Created do
+      end
+
+      action Deleted do
       end
     end
 
