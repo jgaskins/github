@@ -15,27 +15,18 @@ module GitHub
     end
 
     def list(
-      filter : Filter? = nil
+      filter : Filter? = nil,
+      body_type : BodyType = :text,
     ) : Array(Issue)
       params = URI::Params{
         "filter" => filter.to_s,
       }
-      list_with_headers nil, params
-    end
-
-    def list_with_html_body(
-      filter : Filter? = nil
-    ) : Array(Issue)
-      params = URI::Params{
-        "filter" => filter.to_s,
-      }
-      list_with_headers headers_for(:html), params
+      get "/repos/#{repo_owner}/#{repo_name}/issues?#{params}",
+        headers: headers_for(body_type),
+        as: Array(Issue)
     end
 
     private def list_with_headers(headers : ::HTTP::Headers?, params : URI::Params) : Array(Issue)
-      get "/repos/#{repo_owner}/#{repo_name}/issues?#{params}",
-        headers: headers,
-        as: Array(Issue)
     end
 
     enum Filter

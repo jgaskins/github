@@ -124,12 +124,14 @@ module GitHub
         def list(
           page : String | Int | Nil = nil,
           per_page : String | Int | Nil = nil,
+          body_type : BodyType = :text,
         )
           params = URI::Params.new
           params["per_page"] = per_page.to_s if per_page
           params["page"] = page.to_s if page
 
           get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/reviews/#{review_id}/comments?#{params}",
+            headers: headers_for(body_type),
             as: Array(PullRequest::Review::Comment)
         end
       end
