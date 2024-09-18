@@ -29,6 +29,17 @@ module GitHub
     getter reactions : Reactions
     getter performed_via_github_app : JSON::Any
     getter state_reason : String?
+    getter pull_request : PullRequestMetadata?
+
+    struct PullRequestMetadata
+      include Resource
+
+      getter url : URI
+      getter html_url : URI
+      getter diff_url : URI
+      getter patch_url : URI
+      getter merged_at : Time?
+    end
 
     struct Reactions
       include Resource

@@ -45,16 +45,17 @@ module GitHub
 
   struct Commit
     include Resource
+    include JSON::Serializable::Unmapped
 
-    getter sha : String
+    getter! sha : String
     getter! message : String
     getter! ref : String
     # getter node_id : String
     # getter url : URI
-    # getter author : Actor
-    # getter committer : Actor
-    # getter tree : CommitEntry
-    # getter parents : Array(CommitEntry)
+    getter! author : Actor
+    getter! committer : Actor
+    getter! tree : CommitEntry
+    getter! parents : Array(CommitEntry)
     # getter verification : Verification
     # getter html_url : URI
   end

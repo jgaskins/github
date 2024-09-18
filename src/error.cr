@@ -7,4 +7,5 @@ module GitHub
   end
 
   Error.define RequestError
+  Error.define EmptyRepository
 end

@@ -102,7 +102,7 @@ module GitHub
 
       getter sha : String
       getter url : URI
-      getter tree : Array(Blob)
+      getter tree : Array(Blob) { [] of Blob }
       getter? truncated : Bool? = false
     end
 
@@ -118,6 +118,24 @@ module GitHub
       getter! url : URI
 
       def initialize(@path, @content, @mode = "100644")
+      end
+
+      def to_json(json : JSON::Builder)
+        json.object do
+          json.field "type", type
+          json.field "path", path
+          json.field "mode", mode
+          # Can only supply one of `sha` or `content`. Precedence goes to
+          # `content`, and if neither are supplied, we send a `null` value for
+          # `sha`, which deletes the file.
+          if content
+            json.field "content", content
+          else
+            json.field "sha", @sha
+          end
+          json.field "size", @size if @size
+          json.field "url", @url if @url
+        end
       end
     end
   end

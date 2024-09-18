@@ -61,13 +61,19 @@ module GitHub
     end
 
     {% for method in %w[get post put patch delete] %}
-      def http_{{method.id}}(path : String, body : String? = nil, &block : ::HTTP::Client::Response ->)
-        @pool.checkout &.{{method.id}}(path, body: body, headers: default_headers) do |response|
+      def http_{{method.id}}(path : String, headers : ::HTTP::Headers? = nil, body : String? = nil, &block : ::HTTP::Client::Response -> T) forall T
+        if headers
+          headers = default_headers.merge!(headers)
+        else
+          headers = default_headers
+        end
+
+        @pool.checkout &.{{method.id}}(path, body: body, headers: headers) do |response|
           if response.status.redirection? && (location = response.headers["location"]?)
             if URI.parse(location).host == @base_uri.host
-              http_get(location, body, &block)
+              http_get(location, headers, body, &block)
             else
-              ::HTTP::Client.get(location, body, &block)
+              ::HTTP::Client.get(location, headers, body, &block)
             end
           else
             block.call response

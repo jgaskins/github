@@ -39,11 +39,7 @@ module GitHub
     end
 
     def commit(commit : CommitDetail)
-      commit commit.commit # lol
-    end
-
-    def commit(commit : Commit)
-      commit commit.tree.sha
+      commit commit.sha # lol
     end
 
     def commit(ref : String)
@@ -52,13 +48,19 @@ module GitHub
 
     def zipball(ref : String, &block : Compress::Zip::File ->)
       client.http_get "/repos/#{owner}/#{name}/zipball/#{ref}" do |response|
-        file = File.tempfile do |tempfile|
-          IO.copy response.body_io, tempfile
-        end
-        begin
-          Compress::Zip::File.open(file.path) { |zip| block.call zip }
-        ensure
-          file.delete
+        if response.success?
+          file = File.tempfile do |tempfile|
+            IO.copy response.body_io, tempfile
+          end
+          begin
+            Compress::Zip::File.open(file.path) { |zip| block.call zip }
+          ensure
+            file.delete
+          end
+        elsif response.status.not_found? && get # if the repo exists, it's empty
+          raise EmptyRepository.new("Cannot retrieve a zipball for an empty repository")
+        else
+          raise RequestError.new("#{response.status} - #{response.body_io.gets_to_end}")
         end
       end
     end
@@ -242,7 +244,7 @@ module GitHub
 
   class Client
     def repo(repository : Repository)
-      repo repository.owner, repository.name
+      repo repository.owner.login, repository.name
     end
 
     def repo(owner : String, name : String)

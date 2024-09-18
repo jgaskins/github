@@ -32,6 +32,23 @@ module GitHub
         as: PullRequest
     end
 
+    def get_with_html_body
+      get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}",
+        headers: headers_for(:html),
+        as: PullRequest
+    end
+
+    def diff : String
+      headers = HTTP::Headers{"accept" => "application/vnd.github.v3.diff"}
+      client.http_get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}", headers: headers do |response|
+        if response.success?
+          response.body_io.gets_to_end
+        else
+          raise RequestError.new("#{response.status.code} #{response.status} #{response.body_io.gets_to_end}")
+        end
+      end
+    end
+
     def commits
       get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/commits",
         as: Array(CommitDetail)
@@ -105,6 +122,12 @@ module GitHub
 
       def initialize(client, @repo_owner, @repo_name, @number, @review_id)
         super client
+      end
+
+      def get(body_type : BodyType = :text)
+        get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/reviews/#{review_id}",
+          headers: headers_for(body_type),
+          as: PullRequest::Review
       end
 
       def comments

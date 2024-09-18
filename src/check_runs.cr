@@ -1,13 +1,46 @@
 require "./api"
 require "./check_run"
+require "./repos"
 
 module GitHub
-  struct CheckRuns < API
+  struct CheckRunAPI < API
     getter repo_owner : String
     getter repo_name : String
-    getter ref : String
+    getter check_run_id : Int64
 
-    def initialize(client, @repo_owner, @repo_name, @ref)
+    def initialize(client, @repo_owner, @repo_name, @check_run_id)
+      super client
+    end
+
+    def get
+      get "/repos/#{repo_owner}/#{repo_name}/check-runs/#{check_run_id}", as: CheckRun
+    end
+
+    def annotations
+      Annotations.new client, repo_owner, repo_name, check_run_id
+    end
+
+    struct Annotations < API
+      getter repo_owner : String
+      getter repo_name : String
+      getter check_run_id : Int64
+
+      def initialize(client, @repo_owner, @repo_name, @check_run_id)
+        super client
+      end
+
+      def list
+        get "/repos/#{repo_owner}/#{repo_name}/check-runs/#{check_run_id}/annotations",
+          as: Array(CheckRun::Annotation)
+      end
+    end
+  end
+
+  abstract struct CheckRuns < API
+    getter repo_owner : String
+    getter repo_name : String
+
+    def initialize(client, @repo_owner, @repo_name)
       super client
     end
 
@@ -44,7 +77,7 @@ module GitHub
         params["app_id"] = app_id.to_s
       end
 
-      get "/repos/#{repo_owner}/#{repo_name}/commits/#{ref}/check-runs?#{params}",
+      get "/repos/#{repo_owner}/#{repo_name}#{scope}/check-runs?#{params}",
         as: CheckRunList
     end
 
@@ -77,6 +110,32 @@ module GitHub
           "completed"
         end
       end
+    end
+  end
+
+  struct CheckRunsForRef < CheckRuns
+    def initialize(client, repo_owner, repo_name, @ref : String)
+      super client, repo_owner, repo_name
+    end
+
+    def scope
+      "/commits/#{@ref}"
+    end
+  end
+
+  struct CheckRunsForCheckSuite < CheckRuns
+    def initialize(client, repo_owner, repo_name, @check_suite_id : Int64)
+      super client, repo_owner, repo_name
+    end
+
+    def scope
+      "/check-suites/#{@check_suite_id}"
+    end
+  end
+
+  struct Repo < API
+    def check_run(id : Int64)
+      CheckRunAPI.new client, owner, name, id
     end
   end
 end

@@ -5,6 +5,7 @@ require "./account"
 require "./organization"
 require "./issue_comment"
 require "./pull_request"
+require "./check_run"
 
 module GitHub
   abstract struct Event
@@ -44,9 +45,10 @@ module GitHub
     end
 
     use_json_discriminator "type", {
-      ping:         Ping,
-      issues:       Issues,
-      installation: Installation,
+      ping:                      Ping,
+      issues:                    Issues,
+      installation:              Installation,
+      installation_repositories: InstallationRepositories,
     }
 
     struct Actor
@@ -75,21 +77,17 @@ module GitHub
       getter installation : InstallationID
 
       use_json_discriminator "action", {
-        created: Created,
-        opened:  Opened,
-        closed:  Closed,
-        edited:  Edited,
+        created:  Created,
+        opened:   Opened,
+        closed:   Closed,
+        edited:   Edited,
+        reopened: Reopened,
       }
 
-      struct Created < self
-      end
-
-      struct Opened < self
-      end
-
-      action Closed do
-      end
-
+      action Created
+      action Opened
+      action Closed
+      action Reopened
       action Edited do
         getter changes : Hash(String, Change)
 
@@ -174,6 +172,14 @@ module GitHub
         deleted: Deleted,
       }
 
+      getter action : String
+      getter comment : ::GitHub::PullRequest::Review::Comment
+      getter pull_request : GitHub::PullRequest
+      getter repository : GitHub::Repository
+      getter organization : GitHub::Organization
+      getter sender : GitHub::Account
+      getter installation : GitHub::InstallationID
+
       action Created do
       end
 
@@ -199,13 +205,67 @@ module GitHub
       end
     end
 
-    define InstallationRepository do
+    define InstallationRepositories do
+      register "installation_repositories"
+
       use_json_discriminator "action", {
-        created: Created,
+        added:   Added,
+        removed: Removed,
       }
 
-      struct Created < self
+      action Added
+      action Removed
+    end
+
+    define CheckRun do
+      register "check_run"
+
+      getter action : String
+      getter check_run : GitHub::CheckRun
+      getter installation : GitHub::InstallationID
+      getter organization : GitHub::Organization
+      getter repository : GitHub::Repository
+      getter sender : GitHub::Account
+
+      use_json_discriminator "action", {
+        completed:        Completed,
+        created:          Created,
+        requested_action: RequestedAction,
+        rerequested:      Rerequested,
+      }
+
+      action Completed
+      action Created
+      action RequestedAction do
+        getter requested_action : RequestedAction
+
+        struct RequestedAction
+          include Resource
+          getter identifier : String?
+        end
       end
+      action Rerequested
+    end
+
+    define CheckSuite do
+      register "check_suite"
+
+      getter action : String
+      getter check_suite : GitHub::CheckSuite
+      getter repository : GitHub::Repository
+      getter organization : GitHub::Organization
+      getter sender : GitHub::Account
+      getter installation : GitHub::InstallationID
+
+      use_json_discriminator "action", {
+        created:     Created,
+        completed:   Completed,
+        rerequested: Rerequested,
+      }
+
+      action Created
+      action Completed
+      action Rerequested
     end
 
     class UnknownType < Error

@@ -15,7 +15,7 @@ module GitHub
     end
 
     def get(name : String)
-      get "/repos/#{@repo_owner}/#{@repo}/branches/#{name}", as: BranchDetail
+      get "/repos/#{@repo_owner}/#{@repo}/branches/#{name}", as: Branch
     end
 
     def merge(head : String, base : String, commit_message : String)

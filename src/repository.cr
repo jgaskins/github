@@ -1,3 +1,5 @@
+require "./resource"
+
 module GitHub
   struct Repository
     include Resource
@@ -24,7 +26,7 @@ module GitHub
     getter size : Int64
     getter stargazers_count : Int64
     getter watchers_count : Int64
-    getter language : String
+    getter language : String?
     getter? has_issues : Bool
     getter? has_projects : Bool
     getter? has_downloads : Bool

@@ -5,7 +5,6 @@ require "./pull_request"
 module GitHub
   struct CheckRun
     include Resource
-    include JSON::Serializable
 
     getter id : Int64
     getter name : String
@@ -42,6 +41,12 @@ module GitHub
       None # when the conclusion is not provided
     end
 
+    struct Suite
+      include Resource
+
+      getter id : Int64
+    end
+
     struct Output
       include Resource
 
@@ -52,10 +57,50 @@ module GitHub
       getter annotations_url : URI
     end
 
-    struct Suite
+    struct PullRequest
       include Resource
 
       getter id : Int64
+      getter number : Int64
+      getter head : Ref
+      getter base : Ref
+
+      struct Ref
+        include Resource
+
+        getter ref : String
+        getter sha : String
+        getter repo : Repo
+      end
+
+      struct Repo
+        include Resource
+
+        getter id : Int64
+        getter url : URI
+        getter name : String
+      end
+    end
+
+    struct Annotation
+      include Resource
+
+      getter path : String
+      getter blob_href : URI
+      getter start_line : Int32
+      getter start_column : Int32?
+      getter end_line : Int32
+      getter end_column : Int32?
+      getter annotation_level : Level
+      getter title : String
+      getter message : String
+      getter raw_details : String
+
+      enum Level
+        Failure
+        Notice
+        Warning
+      end
     end
   end
 

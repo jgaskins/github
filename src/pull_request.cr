@@ -27,6 +27,13 @@ module GitHub
     getter assignees : Array(Account)
     getter requested_reviewers : Array(Account)
     getter author_association : AuthorAssociation
+    getter! comments : Int64
+    getter! review_comments : Int64
+    getter? maintainer_can_modify : Bool?
+    getter! commits : Int64
+    getter! additions : Int64
+    getter! deletions : Int64
+    getter! changed_files : Int64
 
     # Before we add these, we need a better idea of wtf they are
     getter head : Commit
