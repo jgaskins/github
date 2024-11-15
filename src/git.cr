@@ -32,8 +32,11 @@ module GitHub
         super client
       end
 
-      def get(tree : String)
-        client.get "/repos/#{repo_owner}/#{repo_name}/git/trees/#{tree}", as: Tree
+      def get(tree : String, recursive : Bool = false)
+        if recursive
+          params = "?recursive=true"
+        end
+        client.get "/repos/#{repo_owner}/#{repo_name}/git/trees/#{tree}#{params}", as: Tree
       end
 
       def create(base_tree : String, tree : Array(Blob))
@@ -106,10 +109,10 @@ module GitHub
       getter? truncated : Bool? = false
     end
 
-    struct Blob
+    struct Entry
       include Resource
 
-      getter type = "blob"
+      getter type : Type = :blob
       getter path : String
       getter content : String?
       getter mode : String
@@ -137,7 +140,14 @@ module GitHub
           json.field "url", @url if @url
         end
       end
+
+      enum Type
+        Blob
+        Tree
+      end
     end
+
+    alias Blob = Entry
   end
 
   struct Repo
