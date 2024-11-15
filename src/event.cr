@@ -6,6 +6,7 @@ require "./organization"
 require "./issue_comment"
 require "./pull_request"
 require "./check_run"
+require "./check_suite"
 
 module GitHub
   abstract struct Event
@@ -24,6 +25,14 @@ module GitHub
       struct {{type}} < {{@type}}
         {{yield}}
       end
+    end
+
+    macro actions(**types)
+      use_json_discriminator "action", {{types}}
+
+      {% for action, type in types %}
+        action {{type}}
+      {% end %}
     end
 
     private TYPE_MAP = {} of String => Event.class
@@ -76,18 +85,14 @@ module GitHub
       getter sender : Account
       getter installation : InstallationID
 
-      use_json_discriminator "action", {
-        created:  Created,
-        opened:   Opened,
-        closed:   Closed,
-        edited:   Edited,
+      actions(
+        created: Created,
+        opened: Opened,
+        closed: Closed,
+        edited: Edited,
         reopened: Reopened,
-      }
+      )
 
-      action Created
-      action Opened
-      action Closed
-      action Reopened
       action Edited do
         getter changes : Hash(String, Change)
 
@@ -102,11 +107,6 @@ module GitHub
     define IssueComment do
       register "issue_comment"
 
-      use_json_discriminator "action", {
-        created: Created,
-        deleted: Deleted,
-      }
-
       getter issue : Issue
       getter comment : ::GitHub::IssueComment
       getter repository : Repository
@@ -114,35 +114,21 @@ module GitHub
       getter sender : Account
       getter installation : InstallationID
 
-      struct Created < self
-      end
-
-      struct Deleted < self
-      end
+      actions(
+        created: Created,
+        deleted: Deleted,
+      )
     end
 
     define PullRequest do
-      use_json_discriminator "action", {
+      actions(
         created: Created,
-        closed:  Closed,
-      }
-
-      struct Created < self
-      end
-
-      struct Closed < self
-      end
+        closed: Closed,
+      )
     end
 
     define PullRequestReview do
       register "pull_request_review"
-
-      use_json_discriminator "action", {
-        dismissed: Dismissed,
-        edited:    Edited,
-        submitted: Submitted,
-        deleted:   Deleted,
-      }
 
       getter installation : GitHub::InstallationID
       getter organization : GitHub::Organization
@@ -151,26 +137,16 @@ module GitHub
       getter review : GitHub::PullRequest::Review
       getter sender : GitHub::Account
 
-      action Dismissed do
-      end
-
-      action Edited do
-      end
-
-      action Submitted do
-      end
-
-      action Deleted do
-      end
+      actions(
+        dismissed: Dismissed,
+        edited: Edited,
+        submitted: Submitted,
+        deleted: Deleted,
+      )
     end
 
     define PullRequestReviewComment do
       register "pull_request_review_comment"
-
-      use_json_discriminator "action", {
-        created: Created,
-        deleted: Deleted,
-      }
 
       getter action : String
       getter comment : ::GitHub::PullRequest::Review::Comment
@@ -180,11 +156,10 @@ module GitHub
       getter sender : GitHub::Account
       getter installation : GitHub::InstallationID
 
-      action Created do
-      end
-
-      action Deleted do
-      end
+      actions(
+        created: Created,
+        deleted: Deleted,
+      )
     end
 
     define Installation do
@@ -192,29 +167,22 @@ module GitHub
 
       getter action : String
       getter installation : GitHub::Installation
+      getter sender : GitHub::Account
 
-      use_json_discriminator "action", {
-        created:                  Created,
+      actions(
+        created: Created,
+        deleted: Deleted,
         new_permissions_accepted: NewPermissionsAccepted,
-      }
-
-      struct Created < self
-      end
-
-      struct NewPermissionsAccepted < self
-      end
+      )
     end
 
     define InstallationRepositories do
       register "installation_repositories"
 
-      use_json_discriminator "action", {
-        added:   Added,
+      actions(
+        added: Added,
         removed: Removed,
-      }
-
-      action Added
-      action Removed
+      )
     end
 
     define CheckRun do
@@ -227,15 +195,13 @@ module GitHub
       getter repository : GitHub::Repository
       getter sender : GitHub::Account
 
-      use_json_discriminator "action", {
-        completed:        Completed,
-        created:          Created,
+      actions(
+        completed: Completed,
+        created: Created,
         requested_action: RequestedAction,
-        rerequested:      Rerequested,
-      }
+        rerequested: Rerequested,
+      )
 
-      action Completed
-      action Created
       action RequestedAction do
         getter requested_action : RequestedAction
 
@@ -244,7 +210,6 @@ module GitHub
           getter identifier : String?
         end
       end
-      action Rerequested
     end
 
     define CheckSuite do
@@ -257,15 +222,11 @@ module GitHub
       getter sender : GitHub::Account
       getter installation : GitHub::InstallationID
 
-      use_json_discriminator "action", {
-        created:     Created,
-        completed:   Completed,
+      actions(
+        created: Created,
+        completed: Completed,
         rerequested: Rerequested,
-      }
-
-      action Created
-      action Completed
-      action Rerequested
+      )
     end
 
     class UnknownType < Error
