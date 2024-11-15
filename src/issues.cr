@@ -4,6 +4,7 @@ require "uri/params"
 require "./api"
 require "./issue"
 require "./issue_comment"
+require "./reaction"
 
 module GitHub
   struct Issues < API
@@ -64,6 +65,54 @@ module GitHub
 
     def comments
       IssueComments.new(client, repo_owner, repo_name, issue_number)
+    end
+
+    def comment(comment : IssueComment)
+      comment comment.id
+    end
+
+    def comment(id : Int64)
+      CommentAPI.new client, repo_owner, repo_name, issue_number, id
+    end
+
+    struct CommentAPI < API
+      getter repo_owner : String
+      getter repo_name : String
+      getter issue_number : Int64
+      getter id : Int64
+
+      def initialize(client, @repo_owner, @repo_name, @issue_number, @id)
+        super client
+      end
+
+      def reactions
+        Reactions.new client, repo_owner, repo_name, issue_number, id
+      end
+
+      struct Reactions < API
+        getter repo_owner : String
+        getter repo_name : String
+        getter issue_number : Int64
+        getter comment_id : Int64
+
+        def initialize(client, @repo_owner, @repo_name, @issue_number, @comment_id)
+          super client
+        end
+
+        def create(content : Reaction::Content)
+          post "/repos/#{repo_owner}/#{repo_name}/issues/comments/#{comment_id}/reactions",
+            body: {content: content}.to_json,
+            as: Reaction
+        end
+
+        def delete(reaction : Reaction)
+          delete reaction.id
+        end
+
+        def delete(reaction_id : Int64)
+          delete "/repos/#{repo_owner}/#{repo_name}/issues/comments/#{comment_id}/reactions/#{reaction_id}"
+        end
+      end
     end
   end
 

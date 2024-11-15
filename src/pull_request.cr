@@ -2,6 +2,7 @@ require "./resource"
 require "./author_association"
 require "./commit"
 require "./account"
+require "./label"
 
 module GitHub
   struct PullRequest
@@ -18,6 +19,7 @@ module GitHub
     getter html_url : URI
     getter diff_url : URI
     getter patch_url : URI
+    getter labels : Array(Label)
     getter user : Account
     getter? locked : Bool
     getter? draft : Bool

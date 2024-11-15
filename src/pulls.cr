@@ -11,6 +11,10 @@ module GitHub
       super client
     end
 
+    def list
+      get "/repos/#{@repo_owner}/#{@repo_name}/pulls", as: Array(PullRequest)
+    end
+
     def create(title : String, body : String, head : String, base : String) : PullRequest
       post "/repos/#{@repo_owner}/#{@repo_name}/pulls",
         body: {title: title, body: body, head: head, base: base}.to_json,

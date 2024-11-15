@@ -10,6 +10,43 @@ module GitHub
       # include MessagePack::Serializable::Unmapped
       # include JSON::Serializable::Unmapped
     end
+
+    macro define(type, *ivars)
+      struct {{type}}
+        include ::GitHub::Resource
+
+        {% for ivar in ivars %}
+          getter {{ivar}}
+        {% end %}
+
+        {{yield}}
+      end
+    end
+  end
+
+  module GraphQL
+    module Resource
+      macro included
+        include ::GitHub::Resource
+      end
+
+      macro define(type, *ivars)
+        struct {{type}}
+          include ::GitHub::GraphQL::Resource
+
+          {% for ivar in ivars %}
+            field {{ivar}}
+          {% end %}
+
+          {{yield}}
+        end
+      end
+
+      macro field(ivar, &block)
+        @[JSON::Field(key: "{{ivar.var.camelcase(lower: true)}}")]
+        getter {{ivar.var.underscore}} : {{ivar.type}}{% if ivar.value %} = {{ivar.value}}{% end %}{{block}}
+      end
+    end
   end
 end
 

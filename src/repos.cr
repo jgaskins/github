@@ -8,6 +8,7 @@ require "./issues"
 require "./pulls"
 require "./commits"
 require "./repository"
+require "./base64_converter"
 
 module GitHub
   struct Repo < API
@@ -20,6 +21,10 @@ module GitHub
 
     def branches
       Branches.new(client, owner, name)
+    end
+
+    def issue(issue : Issue)
+      issue issue.number
     end
 
     def issue(number : Int)
@@ -46,6 +51,10 @@ module GitHub
       CommitAPI.new(client, owner, name, ref)
     end
 
+    def contents
+      Contents.new(client, owner, name)
+    end
+
     def zipball(ref : String, &block : Compress::Zip::File ->)
       client.http_get "/repos/#{owner}/#{name}/zipball/#{ref}" do |response|
         if response.success?
@@ -67,6 +76,36 @@ module GitHub
 
     def get
       get "/repos/#{owner}/#{name}", as: Repository
+    end
+
+    struct Contents < API
+      getter repo_owner : String
+      getter repo_name : String
+
+      def initialize(client, @repo_owner, @repo_name)
+        super client
+      end
+
+      def get(path : String) : FileContent
+        get "/repos/#{repo_owner}/#{repo_name}/contents/#{path}", as: FileContent
+      end
+
+      struct FileContent
+        include Resource
+
+        getter name : String
+        getter path : String
+        getter sha : String
+        getter size : Int64
+        getter url : String
+        getter html_url : String
+        getter git_url : String
+        getter download_url : String
+        getter type : String                                 # enum?
+        @[JSON::Field(converter: ::GitHub::Base64Converter)] # is this universal?
+        getter content : String
+        getter encoding : String # enum?
+      end
     end
   end
 
