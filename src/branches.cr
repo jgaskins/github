@@ -11,15 +11,15 @@ module GitHub
     end
 
     def list
-      get "/repos/#{@repo_owner}/#{@repo}/branches", as: Array(BranchSummary)
+      client.get "/repos/#{@repo_owner}/#{@repo}/branches", as: Array(BranchSummary)
     end
 
     def get(name : String)
-      get "/repos/#{@repo_owner}/#{@repo}/branches/#{name}", as: Branch
+      client.get "/repos/#{@repo_owner}/#{@repo}/branches/#{name}", as: Branch
     end
 
     def merge(head : String, base : String, commit_message : String)
-      post "/repos/#{@repo_owner}/#{@repo}/merges",
+      client.post "/repos/#{@repo_owner}/#{@repo}/merges",
         body: {
           head:           head,
           base:           base,

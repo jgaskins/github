@@ -13,7 +13,7 @@ module GitHub
     end
 
     def get
-      get "/repos/#{repo_owner}/#{repo_name}/check-runs/#{check_run_id}", as: CheckRun
+      client.get "/repos/#{repo_owner}/#{repo_name}/check-runs/#{check_run_id}", as: CheckRun
     end
 
     def annotations
@@ -30,7 +30,7 @@ module GitHub
       end
 
       def list
-        get "/repos/#{repo_owner}/#{repo_name}/check-runs/#{check_run_id}/annotations",
+        client.get "/repos/#{repo_owner}/#{repo_name}/check-runs/#{check_run_id}/annotations",
           as: Array(CheckRun::Annotation)
       end
     end
@@ -77,7 +77,7 @@ module GitHub
         params["app_id"] = app_id.to_s
       end
 
-      get "/repos/#{repo_owner}/#{repo_name}#{scope}/check-runs?#{params}",
+      client.get "/repos/#{repo_owner}/#{repo_name}#{scope}/check-runs?#{params}",
         as: CheckRunList
     end
 

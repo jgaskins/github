@@ -12,11 +12,11 @@ module GitHub
     end
 
     def list
-      get "/repos/#{@repo_owner}/#{@repo_name}/pulls", as: Array(PullRequest)
+      client.get "/repos/#{@repo_owner}/#{@repo_name}/pulls", as: Array(PullRequest)
     end
 
     def create(title : String, body : String, head : String, base : String) : PullRequest
-      post "/repos/#{@repo_owner}/#{@repo_name}/pulls",
+      client.post "/repos/#{@repo_owner}/#{@repo_name}/pulls",
         body: {title: title, body: body, head: head, base: base}.to_json,
         as: PullRequest
     end
@@ -32,12 +32,12 @@ module GitHub
     end
 
     def get
-      get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}",
+      client.get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}",
         as: PullRequest
     end
 
     def get_with_html_body
-      get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}",
+      client.get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}",
         headers: headers_for(:html),
         as: PullRequest
     end
@@ -54,7 +54,7 @@ module GitHub
     end
 
     def commits
-      get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/commits",
+      client.get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/commits",
         as: Array(CommitDetail)
     end
 
@@ -95,7 +95,7 @@ module GitHub
         end
 
         def create(body : String)
-          post "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{number}/comments/#{comment_id}/replies",
+          client.post "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{number}/comments/#{comment_id}/replies",
             body: {body: body}.to_json,
             as: PullRequest::Review::Comment
         end
@@ -112,7 +112,7 @@ module GitHub
       end
 
       def create(body : String)
-        post "/repos/#{@repo_owner}/#{@repo_name}/issues/#{@number}/comments",
+        client.post "/repos/#{@repo_owner}/#{@repo_name}/issues/#{@number}/comments",
           {body: body}.to_json,
           as: JSON::Any
       end
@@ -129,7 +129,7 @@ module GitHub
       end
 
       def get(body_type : BodyType = :text)
-        get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/reviews/#{review_id}",
+        client.get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/reviews/#{review_id}",
           headers: headers_for(body_type),
           as: PullRequest::Review
       end
@@ -157,7 +157,7 @@ module GitHub
           params["per_page"] = per_page.to_s if per_page
           params["page"] = page.to_s if page
 
-          get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/reviews/#{review_id}/comments?#{params}",
+          client.get "/repos/#{@repo_owner}/#{@repo_name}/pulls/#{@number}/reviews/#{review_id}/comments?#{params}",
             headers: headers_for(body_type),
             as: Array(PullRequest::Review::Comment)
         end

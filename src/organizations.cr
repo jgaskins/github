@@ -14,12 +14,12 @@ module GitHub
 
   struct Organizations < API
     def list
-      get "/organizations", as: Array(ListItem)
+      client.get "/organizations", as: Array(ListItem)
     end
 
     struct ForUser < API
       def list
-        get "/user/orgs", as: Array(ListItem)
+        client.get "/user/orgs", as: Array(ListItem)
       end
     end
 

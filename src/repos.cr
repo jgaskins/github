@@ -75,7 +75,7 @@ module GitHub
     end
 
     def get
-      get "/repos/#{owner}/#{name}", as: Repository
+      client.get "/repos/#{owner}/#{name}", as: Repository
     end
 
     struct Contents < API
@@ -86,8 +86,13 @@ module GitHub
         super client
       end
 
-      def get(path : String) : FileContent
-        get "/repos/#{repo_owner}/#{repo_name}/contents/#{path}", as: FileContent
+      def get(path : String, *, ref : String?) : FileContent
+        if ref
+          params = URI::Params{"ref" => ref}
+        end
+
+        client.get "/repos/#{repo_owner}/#{repo_name}/contents/#{path}?#{params}",
+          as: FileContent
       end
 
       struct FileContent

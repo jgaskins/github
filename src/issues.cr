@@ -22,7 +22,7 @@ module GitHub
       params = URI::Params{
         "filter" => filter.to_s,
       }
-      get "/repos/#{repo_owner}/#{repo_name}/issues?#{params}",
+      client.get "/repos/#{repo_owner}/#{repo_name}/issues?#{params}",
         headers: headers_for(body_type),
         as: Array(Issue)
     end
@@ -100,7 +100,7 @@ module GitHub
         end
 
         def create(content : Reaction::Content)
-          post "/repos/#{repo_owner}/#{repo_name}/issues/comments/#{comment_id}/reactions",
+          client.post "/repos/#{repo_owner}/#{repo_name}/issues/comments/#{comment_id}/reactions",
             body: {content: content}.to_json,
             as: Reaction
         end
@@ -110,7 +110,7 @@ module GitHub
         end
 
         def delete(reaction_id : Int64)
-          delete "/repos/#{repo_owner}/#{repo_name}/issues/comments/#{comment_id}/reactions/#{reaction_id}"
+          client.delete "/repos/#{repo_owner}/#{repo_name}/issues/comments/#{comment_id}/reactions/#{reaction_id}"
         end
       end
     end
@@ -128,13 +128,13 @@ module GitHub
     def list(per_page : String | Int | Nil = nil, body_type : BodyType = :text)
       params = URI::Params.new
       params["per_page"] = per_page.to_s if per_page
-      get "/repos/#{repo_owner}/#{repo_name}/issues/#{issue_number}/comments?#{params}",
+      client.get "/repos/#{repo_owner}/#{repo_name}/issues/#{issue_number}/comments?#{params}",
         headers: headers_for(body_type),
         as: Array(IssueComment)
     end
 
     def create(body : String)
-      post "/repos/#{repo_owner}/#{repo_name}/issues/#{issue_number}/comments",
+      client.post "/repos/#{repo_owner}/#{repo_name}/issues/#{issue_number}/comments",
         body: {body: body}.to_json,
         as: IssueComment
     end
@@ -142,7 +142,7 @@ module GitHub
 
   struct AssignedIssues < API
     def list
-      get "/issues", as: Array(Issue)
+      client.get "/issues", as: Array(Issue)
     end
   end
 

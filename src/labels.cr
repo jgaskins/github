@@ -17,7 +17,7 @@ module GitHub
     end
 
     def list
-      get "/repos/#{repo_full_name}/pulls/#{pull_number}/labels", as: JSON::Any
+      client.get "/repos/#{repo_full_name}/pulls/#{pull_number}/labels", as: JSON::Any
     end
 
     def repo_full_name

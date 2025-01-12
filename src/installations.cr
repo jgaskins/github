@@ -4,7 +4,7 @@ require "./api"
 module GitHub
   struct Installations < API
     def list
-      get "/app/installations", as: Array(Installation)
+      client.get "/app/installations", as: Array(Installation)
     end
   end
 

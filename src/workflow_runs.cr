@@ -15,11 +15,11 @@ module GitHub
     end
 
     def get
-      get "/repos/#{repo_full_name}/actions/runs/#{id}", as: WorkflowRun
+      client.get "/repos/#{repo_full_name}/actions/runs/#{id}", as: WorkflowRun
     end
 
     def logs
-      response = get "/repos/#{repo_full_name}/actions/runs/#{id}/logs"
+      response = client.get "/repos/#{repo_full_name}/actions/runs/#{id}/logs"
       if response.status.redirection?
         HTTP::Client.get response.headers["location"] do |response|
           Compress::Zip::Reader.open response.body_io do |zip|
