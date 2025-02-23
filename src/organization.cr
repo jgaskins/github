@@ -14,6 +14,6 @@ struct GitHub::Organization
   getter members_url : URI
   getter public_members_url : URI
   getter avatar_url : URI
-  getter description : String
+  getter description : String?
   getter company : String?
 end
