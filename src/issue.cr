@@ -24,7 +24,7 @@ module GitHub
     getter closed_at : Time?
     getter author_association : AuthorAssociation?
     getter active_lock_reason : String?
-    getter body : String { body_html }
+    getter body : String { @body_html || "" }
     getter body_html : String { body }
     getter reactions : Reactions
     getter performed_via_github_app : JSON::Any
