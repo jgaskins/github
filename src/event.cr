@@ -117,6 +117,7 @@ module GitHub
       actions(
         created: Created,
         deleted: Deleted,
+        edited: Edited,
       )
     end
 
