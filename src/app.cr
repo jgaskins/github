@@ -1,16 +1,22 @@
 require "oauth2"
 require "jwt"
 require "json"
+require "openssl/hmac"
+require "crypto/subtle"
 
 require "./api"
 require "./client"
 require "./installation"
+require "./webhook"
+require "./event"
 
 module GitHub
   class App
-    #
+    # GitHub shouldn't be sending webhooks over 1MB, right?
+    private MAX_WEBHOOK_BYTES = 1 << 20
+
     getter id : Int64
-    @client_id : String
+    getter client_id : String
     @client_secret : String
     @private_key : String
 
@@ -19,7 +25,7 @@ module GitHub
       @id = ENV["GITHUB_APP_ID"].to_i64,
       @client_id = ENV["GITHUB_CLIENT_ID"],
       @client_secret = ENV["GITHUB_CLIENT_SECRET"],
-      private_key_file : String = ENV["GITHUB_PRIVATE_KEY_FILE"]
+      private_key_file : String = ENV["GITHUB_PRIVATE_KEY_FILE"],
     )
       @private_key = File.read(private_key_file)
     end
@@ -65,6 +71,34 @@ module GitHub
       end
     end
 
+    def webhook(request : ::HTTP::Request, webhook_secret : String) : Webhook?
+      body = request.body
+      event_type = request.headers["X-Github-Event"]?
+      signature = request.headers["X-Hub-Signature-256"]?.try(&.lchop("sha256="))
+      id = request.headers["X-Github-Hook-ID"]?.try(&.to_i64?)
+      delivery = request.headers["X-Github-Delivery"]?
+      installation_target_type = request.headers["X-Github-Hook-Installation-Target-Type"]?
+      installation_target_id = request.headers["X-Github-Hook-Installation-Target-ID"]?.try(&.to_i64?)
+
+      if body && event_type && signature && id && delivery && installation_target_type && installation_target_id
+        if body = body.gets(limit: MAX_WEBHOOK_BYTES)
+          expected_signature = OpenSSL::HMAC.hexdigest(:sha256, webhook_secret, body)
+          unless Crypto::Subtle.constant_time_compare(expected_signature, signature)
+            return nil
+          end
+
+          Webhook.new(
+            id: id,
+            delivery: delivery,
+            type: event_type,
+            installation_target_type: installation_target_type,
+            installation_target_id: installation_target_id,
+            event: Event[event_type, body],
+          )
+        end
+      end
+    end
+
     def user_client(access_token : String) : Client
       Client.new { access_token }
     end
@@ -98,7 +132,7 @@ module GitHub
         *,
         @issued_at = Time.utc,
         @expires_at = nil,
-        @issuer = nil
+        @issuer = nil,
       )
       end
     end
