@@ -1,7 +1,47 @@
 require "./branch"
 require "./resource"
+require "./repos"
+require "./commit"
+require "./diff"
 
 module GitHub
+  struct Repo
+    def branch(name branch_name : String)
+      BranchAPI.new client, owner, name, branch_name
+    end
+
+    def branches
+      Branches.new client, owner, name
+    end
+  end
+
+  struct BranchAPI < API
+    getter repo_owner : String
+    getter repo_name : String
+    getter name : String
+
+    def initialize(client, @repo_owner, @repo_name, @name)
+      super client
+    end
+
+    def get
+      client.get "/repos/#{repo_owner}/#{repo_name}/branches/#{name}", as: Branch
+    end
+
+    def merge(into base : String, commit_message : String)
+      client.post "/repos/#{repo_owner}/#{repo_name}/merges",
+        body: {
+          head:           name,
+          base:           base,
+          commit_message: commit_message,
+        }.to_json
+    end
+
+    def compare(with base : String)
+      client.get "/repos/#{repo_owner}/#{repo_name}/compare/#{base}...#{name}", as: Diff
+    end
+  end
+
   struct Branches < API
     getter repo_owner : String
     getter repo : String

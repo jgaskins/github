@@ -3,7 +3,6 @@ require "compress/zip"
 
 # TODO: invert these dependencies so working with a repo doesn't load everything
 # you could possibly do with a repo.
-require "./branches"
 require "./issues"
 require "./pulls"
 require "./commits"
@@ -17,10 +16,6 @@ module GitHub
 
     def initialize(client, @owner, @name)
       super client
-    end
-
-    def branches
-      Branches.new(client, owner, name)
     end
 
     def issue(issue : Issue)

@@ -7,6 +7,7 @@ require "./issue_comment"
 require "./pull_request"
 require "./check_run"
 require "./check_suite"
+require "./deployment"
 
 module GitHub
   abstract struct Event
@@ -227,6 +228,46 @@ module GitHub
         created: Created,
         completed: Completed,
         rerequested: Rerequested,
+      )
+    end
+
+    define Deployment do
+      include JSON::Serializable::Unmapped
+      register "deployment"
+
+      getter deployment : GitHub::Deployment
+      getter repository : GitHub::Repository
+      getter organization : GitHub::Organization
+      getter sender : GitHub::Account
+      getter installation : GitHub::InstallationID
+
+      # FIXME: Define types for these
+      getter workflow : JSON::Any
+      getter workflow_run : JSON::Any
+
+      actions(
+        created: Created,
+      )
+    end
+
+    define DeploymentStatus do
+      include JSON::Serializable::Unmapped
+      register "deployment_status"
+
+      getter deployment_status : GitHub::Deployment::Status
+      getter deployment : GitHub::Deployment
+      getter repository : GitHub::Repository
+      getter organization : GitHub::Organization
+      getter sender : GitHub::Account
+      getter installation : GitHub::InstallationID
+
+      # FIXME: Define types for these
+      getter check_run : JSON::Any
+      getter workflow : JSON::Any
+      getter workflow_run : JSON::Any
+
+      actions(
+        created: Created,
       )
     end
 
