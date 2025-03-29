@@ -49,6 +49,10 @@ module GitHub
       JWT.encode payload, @private_key, :rs256
     end
 
+    def installations : Array(Installation)
+      client.get "/app/installations", as: Array(Installation)
+    end
+
     def installation_client(installation_id : Int64)
       token = installation_token(installation_id)
 
