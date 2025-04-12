@@ -45,7 +45,7 @@ module GitHub
     getter topics : Array(String)
     getter open_issues : Int64
     getter default_branch : String
-    getter custom_properties : Hash(String, String)
+    getter custom_properties : Hash(String, String) { {} of String => String }
 
     enum Visibility
       Public
