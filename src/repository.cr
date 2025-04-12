@@ -1,4 +1,5 @@
 require "./resource"
+require "./account"
 
 module GitHub
   struct Repository
