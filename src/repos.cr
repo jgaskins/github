@@ -159,7 +159,7 @@ module GitHub
       params["since"] = since.to_rfc3339 if since
       params["before"] = before.to_rfc3339 if before
 
-      list = get "/user/repos?#{params}", as: List(Repository)
+      list = client.get "/user/repos?#{params}", as: List(Repository)
       if per_page
         list.expected_size = per_page
       end
