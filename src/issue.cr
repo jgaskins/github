@@ -1,4 +1,5 @@
 require "./resource"
+require "./account"
 
 module GitHub
   struct Issue
@@ -80,6 +81,19 @@ module GitHub
           end
         end
         value
+      end
+
+      def to_json(json : JSON::Builder) : Nil
+        index = 0
+        json.string do |io|
+          each do |member|
+            if index > 0
+              io << ','
+            end
+            io << member
+            index += 1
+          end
+        end
       end
     end
   end
