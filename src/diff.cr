@@ -1,4 +1,5 @@
 require "./resource"
+require "./commit"
 
 module GitHub
   struct Diff
