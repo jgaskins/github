@@ -17,20 +17,20 @@ module GitHub
         query : String,
         variables : NamedTuple | Hash | JSON::Serializable | Nil = nil,
         *,
-        as type : T.class
+        as type : T.class,
       ) : Response(T) forall T
         response = client.post "/graphql",
-          body: {
-            query:     query,
-            variables: variables,
-          }.to_json,
-          as: Response(T) | ErrorResponse
+          body: {query: query, variables: variables}.to_json
 
-        case response
-        in Response
-          response
-        in ErrorResponse
-          raise RequestError.new(response.errors.map(&.message).join(", "))
+        begin
+          Response(T).from_json(response.body)
+        rescue ex : JSON::SerializableError
+          error = begin
+            ErrorResponse.from_json(response.body)
+          rescue ex2 # If we couldn't parse an error, either, carry on with the original exception
+            raise ex
+          end
+          raise RequestError.new(error.errors.map(&.message).join(", "))
         end
       end
 
@@ -38,20 +38,20 @@ module GitHub
         *,
         operation_name : String,
         variables : NamedTuple | Hash | JSON::Serializable | Nil = nil,
-        as type : T.class
+        as type : T.class,
       ) : Response(T) forall T
         response = client.post "/graphql",
-          body: {
-            operationName: operation_name,
-            variables:     variables,
-          }.to_json,
-          as: Response(T) | ErrorResponse
+          body: {operationName: operation_name, variables: variables}.to_json
 
-        case response
-        in Response
-          response
-        in ErrorResponse
-          raise RequestError.new(response.errors.map(&.message).join(", "))
+        begin
+          Response(T).from_json(response.body)
+        rescue ex : JSON::SerializableError
+          begin
+            error = ErrorResponse.from_json(response.body)
+            raise RequestError.new(error.errors.map(&.message).join(", "))
+          rescue ex2
+            raise ex
+          end
         end
       end
     end
