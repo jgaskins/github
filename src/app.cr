@@ -18,6 +18,7 @@ module GitHub
 
     getter id : Int64
     getter client_id : String
+    getter redirect_uri : String?
     @client_secret : String
     @private_key : String
 
@@ -27,6 +28,7 @@ module GitHub
       @client_id = ENV["GITHUB_CLIENT_ID"],
       @client_secret = ENV["GITHUB_CLIENT_SECRET"],
       private_key : String = ENV.fetch("GITHUB_PRIVATE_KEY") { ENV["GITHUB_PRIVATE_KEY_FILE"] },
+      @redirect_uri = ENV["GITHUB_OAUTH2_REDIRECT_URI"]?,
     )
       @private_key = PrivateKey.load(private_key)
     end
@@ -117,6 +119,7 @@ module GitHub
         client_secret: @client_secret,
         authorize_uri: "/login/oauth/authorize",
         token_uri: "/login/oauth/access_token",
+        redirect_uri: @redirect_uri,
       )
     end
 
