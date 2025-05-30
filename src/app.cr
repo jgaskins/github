@@ -9,6 +9,7 @@ require "./client"
 require "./installation"
 require "./webhook"
 require "./event"
+require "./private_key"
 
 module GitHub
   class App
@@ -25,9 +26,9 @@ module GitHub
       @id = ENV["GITHUB_APP_ID"].to_i64,
       @client_id = ENV["GITHUB_CLIENT_ID"],
       @client_secret = ENV["GITHUB_CLIENT_SECRET"],
-      private_key_file : String = ENV["GITHUB_PRIVATE_KEY_FILE"],
+      private_key : String = ENV.fetch("GITHUB_PRIVATE_KEY") { ENV["GITHUB_PRIVATE_KEY_FILE"] },
     )
-      @private_key = File.read(private_key_file)
+      @private_key = PrivateKey.load(private_key)
     end
 
     def get_access_token(code : String)
