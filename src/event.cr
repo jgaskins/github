@@ -169,8 +169,12 @@ module GitHub
 
       getter action : String
       getter installation : GitHub::Installation
-      getter repositories : Array(Repository) { [] of Repository }
+      getter repositories : Array(Repository)?
       getter sender : GitHub::Account
+
+      def all_repositories?
+        repositories.nil?
+      end
 
       actions(
         created: Created,
