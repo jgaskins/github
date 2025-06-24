@@ -169,6 +169,7 @@ module GitHub
 
       getter action : String
       getter installation : GitHub::Installation
+      getter repositories : Array(Repository) { [] of Repository }
       getter sender : GitHub::Account
 
       actions(
@@ -176,6 +177,16 @@ module GitHub
         deleted: Deleted,
         new_permissions_accepted: NewPermissionsAccepted,
       )
+
+      struct Repository
+        include JSON::Serializable
+
+        getter id : Int64
+        getter node_id : String
+        getter name : String
+        getter full_name : String
+        getter? private : Bool
+      end
     end
 
     define InstallationRepositories do
